@@ -195,66 +195,144 @@ export function MapProvider({ children }) {
 
   // Get user's current location with better error handling
   const getUserLocation = () => {
-    if (navigator.geolocation) {
-      // First check if permission is granted
-      navigator.permissions?.query({ name: 'geolocation' }).then((result) => {
-        if (result.state === 'granted') {
-          fetchLocation()
-        } else if (result.state === 'prompt') {
-          // Will trigger browser prompt
-          fetchLocation()
-        } else {
-          // Permission denied - use default + set error state
-          console.log('Geolocation permission denied')
-          setLocationError('denied')
-          setUserLocation({ lat: 22.3193, lng: 114.1694 })
-        }
-      }).catch(() => {
-        // Fallback for browsers without permissions API
-        fetchLocation()
-      })
-    } else {
-      // Geolocation not supported
-      console.log('Geolocation not supported')
+    console.log('🔄 嘗試獲取位置...')
+    
+    // 檢查是否在安全上下文（HTTPS或localhost）
+    if (!window.isSecureContext) {
+      console.warn('⚠️ 非安全上下文：Geolocation需要HTTPS或localhost')
       setLocationError('unavailable')
       setUserLocation({ lat: 22.3193, lng: 114.1694 })
+      return
+    }
+    
+    if (navigator.geolocation) {
+      console.log('✅ Geolocation API可用')
+      
+      // 首先檢查權限狀態
+      if (navigator.permissions && navigator.permissions.query) {
+        navigator.permissions.query({ name: 'geolocation' }).then((result) => {
+          console.log('📍 權限狀態:', result.state)
+          
+          if (result.state === 'granted') {
+            console.log('✅ 已有位置權限，獲取位置...')
+            fetchLocation()
+          } else if (result.state === 'prompt') {
+            console.log('❓ 需要請求權限...')
+            // 顯示用戶提示
+            setLocationError('prompt')
+            // 仍然嘗試獲取位置（會觸發瀏覽器提示）
+            fetchLocation()
+          } else {
+            // Permission denied
+            console.log('❌ 位置權限被拒絕')
+            setLocationError('denied')
+            setUserLocation({ lat: 22.3193, lng: 114.1694 })
+            
+            // 顯示修復指引
+            setTimeout(() => {
+              alert('📍 位置權限被拒絕\n\n請在瀏覽器設定中允許位置權限：\n1. 點擊網址欄左側的鎖定圖標\n2. 選擇「網站設定」\n3. 將「位置」改為「允許」')
+            }, 1000)
+          }
+        }).catch((error) => {
+          console.warn('⚠️ 權限API錯誤，使用fallback:', error)
+          // Fallback for browsers without permissions API
+          fetchLocation()
+        })
+      } else {
+        console.log('⚠️ 權限API不可用，直接嘗試獲取位置...')
+        // 舊瀏覽器直接嘗試
+        fetchLocation()
+      }
+    } else {
+      // Geolocation not supported
+      console.error('❌ Geolocation不支援')
+      setLocationError('unavailable')
+      setUserLocation({ lat: 22.3193, lng: 114.1694 })
+      
+      // 顯示錯誤訊息
+      setTimeout(() => {
+        alert('❌ 你的瀏覽器不支援定位功能\n\n請嘗試：\n1. 使用Chrome、Firefox或Edge瀏覽器\n2. 確保使用HTTPS連接\n3. 檢查瀏覽器設定中的位置權限')
+      }, 1000)
     }
   }
 
   const fetchLocation = () => {
+    console.log('📍 開始獲取位置...')
+    
+    const options = {
+      enableHighAccuracy: true,  // 使用GPS等高精度
+      timeout: 15000,           // 15秒超時
+      maximumAge: 30000         // 30秒內緩存有效
+    }
+    
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        console.log('✅ 成功獲取位置:', {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          accuracy: position.coords.accuracy + '米'
+        })
+        
         setUserLocation({
           lat: position.coords.latitude,
           lng: position.coords.longitude
         })
         setLocationError(null)
+        
+        // 成功提示
+        setTimeout(() => {
+          console.log('📍 位置已更新到地圖中心')
+        }, 500)
       },
       (error) => {
-        console.log('Geolocation error:', error.code, error.message)
-        // Different error codes - set user-friendly error state
+        console.error('❌ Geolocation錯誤:', error.code, error.message)
+        
+        // 詳細錯誤處理
+        let errorType = 'unavailable'
+        let errorMessage = '無法獲取位置'
+        
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            console.log('User denied geolocation')
-            setLocationError('denied')
+            errorType = 'denied'
+            errorMessage = '位置權限被拒絕'
+            console.log('❌ 用戶拒絕了位置權限')
             break
           case error.POSITION_UNAVAILABLE:
-            console.log('Position unavailable')
-            setLocationError('unavailable')
+            errorType = 'unavailable'
+            errorMessage = '位置服務不可用'
+            console.log('❌ 位置服務不可用（GPS關閉？）')
             break
           case error.TIMEOUT:
-            console.log('Geolocation timeout')
-            setLocationError('timeout')
+            errorType = 'timeout'
+            errorMessage = '獲取位置超時'
+            console.log('⏰ 獲取位置超時')
             break
+          default:
+            errorType = 'unavailable'
+            errorMessage = '未知錯誤'
         }
-        // Default to Hong Kong center
-        setUserLocation({ lat: 22.3193, lng: 114.1694 })
+        
+        setLocationError(errorType)
+        
+        // 使用香港中心作為默認位置
+        const defaultLocation = { lat: 22.3193, lng: 114.1694 }
+        setUserLocation(defaultLocation)
+        
+        // 顯示詳細錯誤訊息
+        setTimeout(() => {
+          const messages = {
+            denied: '📍 位置權限被拒絕\n\n請在瀏覽器設定中允許位置權限：\n1. 點擊網址欄左側的鎖定圖標\n2. 選擇「網站設定」\n3. 將「位置」改為「允許」',
+            unavailable: '📍 位置服務不可用\n\n請確保：\n1. GPS或位置服務已開啟\n2. 使用HTTPS連接（GitHub Pages已提供）\n3. 瀏覽器支援Geolocation API',
+            timeout: '📍 獲取位置超時\n\n請檢查網絡連接，或稍後再試',
+            prompt: '📍 需要位置權限\n\n請允許瀏覽器獲取你的位置以使用定位功能'
+          }
+          
+          if (messages[errorType]) {
+            alert(messages[errorType])
+          }
+        }, 1000)
       },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 60000
-      }
+      options
     )
   }
 

@@ -341,33 +341,115 @@ export default function MapView({ darkMode }) {
       {/* Location Permission Warning */}
       {locationError && (
         <div className="absolute top-20 left-4 right-4 z-20 animate-slide-up">
-          <div className="bg-yellow-100 border border-amber-200 rounded-2xl p-3 flex items-center gap-3 shadow-lg">
-            <div className="w-10 h-10 rounded-xl bg-yellow-200 flex items-center justify-center shrink-0">
-              <Locate className="w-5 h-5 text-yellow-600" />
+          <div className={`rounded-2xl p-4 flex items-center gap-3 shadow-lg ${
+            locationError === 'denied' 
+              ? 'bg-red-100 border border-red-200' 
+              : locationError === 'prompt'
+              ? 'bg-blue-100 border border-blue-200'
+              : 'bg-yellow-100 border border-amber-200'
+          }`}>
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+              locationError === 'denied' 
+                ? 'bg-red-200' 
+                : locationError === 'prompt'
+                ? 'bg-blue-200'
+                : 'bg-yellow-200'
+            }`}>
+              <Locate className={`w-5 h-5 ${
+                locationError === 'denied' 
+                  ? 'text-red-600' 
+                  : locationError === 'prompt'
+                  ? 'text-blue-600'
+                  : 'text-yellow-600'
+              }`} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-amber-800">
-                {locationError === 'denied' ? '位置權限被拒絕' : '無法取得位置'}
+              <p className={`text-sm font-semibold ${
+                locationError === 'denied' 
+                  ? 'text-red-800' 
+                  : locationError === 'prompt'
+                  ? 'text-blue-800'
+                  : 'text-amber-800'
+              }`}>
+                {locationError === 'denied' 
+                  ? '📍 位置權限被拒絕' 
+                  : locationError === 'prompt'
+                  ? '📍 需要位置權限'
+                  : locationError === 'timeout'
+                  ? '⏰ 獲取位置超時'
+                  : '📍 無法取得位置'}
               </p>
-              <p className="text-xs text-yellow-600 mt-0.5">
+              <p className={`text-xs mt-0.5 ${
+                locationError === 'denied' 
+                  ? 'text-red-600' 
+                  : locationError === 'prompt'
+                  ? 'text-blue-600'
+                  : 'text-yellow-600'
+              }`}>
                 {locationError === 'denied'
-                  ? '使用香港中心位置，允許位置存取以獲得更精準推薦'
-                  : '位置服務暫時無法使用'}
+                  ? '請在瀏覽器設定中允許位置權限以使用定位功能'
+                  : locationError === 'prompt'
+                  ? '請允許瀏覽器獲取你的位置（檢查瀏覽器提示）'
+                  : locationError === 'timeout'
+                  ? '獲取位置時間過長，請檢查網絡連接'
+                  : '位置服務暫時無法使用，使用香港中心位置'}
               </p>
             </div>
-            <button
-              onClick={refreshUserLocation}
-              className="px-3 py-1.5 bg-yellow-1000 text-white text-xs font-semibold rounded-lg shrink-0"
-            >
-              重試
-            </button>
+            <div className="flex flex-col gap-1 shrink-0">
+              <button
+                onClick={refreshUserLocation}
+                className={`px-3 py-1.5 text-white text-xs font-semibold rounded-lg ${
+                  locationError === 'denied' 
+                    ? 'bg-red-600 hover:bg-red-700' 
+                    : locationError === 'prompt'
+                    ? 'bg-blue-600 hover:bg-blue-700'
+                    : 'bg-yellow-600 hover:bg-yellow-700'
+                }`}
+              >
+                重試
+              </button>
+              {locationError === 'denied' && (
+                <button
+                  onClick={() => {
+                    alert('📍 修復位置權限：\n\n1. 點擊網址欄左側的鎖定圖標 🔒\n2. 選擇「網站設定」\n3. 找到「位置」選項\n4. 改為「允許」\n5. 重新整理頁面')
+                  }}
+                  className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-lg"
+                >
+                  修復指引
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
 
+      {/* Location Status Indicator */}
+      <div className="absolute top-20 left-4 z-20">
+        <div className={`px-3 py-2 backdrop-blur rounded-xl shadow-md flex items-center gap-2 ${
+          userLocation && !locationError 
+            ? 'bg-green-100/90 border border-green-200' 
+            : 'bg-yellow-100/90 border border-amber-200'
+        }`}>
+          <div className={`w-2 h-2 rounded-full ${
+            userLocation && !locationError ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'
+          }`} />
+          <span className={`text-xs font-medium ${
+            userLocation && !locationError ? 'text-green-700' : 'text-amber-700'
+          }`}>
+            {userLocation && !locationError 
+              ? '📍 已定位' 
+              : locationError === 'denied'
+              ? '❌ 權限被拒'
+              : locationError === 'prompt'
+              ? '❓ 等待權限'
+              : '📍 定位中...'}
+          </span>
+        </div>
+      </div>
+
       {/* Search indicator */}
       {isSearching && (
-        <div className="absolute top-20 left-4 z-20">
+        <div className="absolute top-20 left-24 z-20">
           <div className="px-4 py-2 bg-white/90 backdrop-blur rounded-xl shadow-md flex items-center gap-2">
             <Search className="w-4 h-4 text-yellow-600 animate-pulse" />
             <span className="text-xs text-zinc-600">搜尋中...</span>
@@ -375,11 +457,21 @@ export default function MapView({ darkMode }) {
         </div>
       )}
 
+      {/* Manual Location Button */}
+      <button
+        onClick={refreshUserLocation}
+        className="absolute left-4 bottom-32 z-20 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl shadow-xl shadow-blue-500/30 flex items-center gap-2 active:scale-95 transition-transform hover:shadow-blue-500/40"
+        title="重新定位到我的位置"
+      >
+        <Locate className="w-5 h-5" />
+        <span className="font-semibold text-sm">我的位置</span>
+      </button>
+
       {/* Nearby Recommendations Toggle */}
       {recommendations.length > 0 && (
         <button
           onClick={() => setShowNearby(!showNearby)}
-          className="absolute left-4 bottom-32 z-20 px-4 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-2xl shadow-xl shadow-amber-500/30 flex items-center gap-2 active:scale-95 transition-transform"
+          className="absolute left-4 bottom-44 z-20 px-4 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-2xl shadow-xl shadow-amber-500/30 flex items-center gap-2 active:scale-95 transition-transform"
         >
           <Zap className="w-5 h-5" />
           <span className="font-semibold text-sm">智能推薦</span>

@@ -4,20 +4,18 @@ import { AuthProvider } from './context/AuthContext'
 import TabBar from './components/TabBar'
 import MapView from './components/MapView'
 import NewsView from './components/NewsView'
-import SmartAssistantView from './components/SmartAssistantView'
 import ProfileView from './components/ProfileView'
 import OnboardingView from './components/OnboardingView'
 import Header from './components/Header'
-import OctopusDealsView from './components/OctopusDealsView'
-import OctopusInfoView from './components/OctopusInfoView'
 import TrafficView from './components/TrafficView'
 import QueueTimesView from './components/QueueTimesView'
+import AutomationView from './components/AutomationView'
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('map')
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [darkMode, setDarkMode] = useState(false)
-  const [octopusView, setOctopusView] = useState('deals') // 'deals' or 'info'
+
 
   useEffect(() => {
     const seen = localStorage.getItem('hk_onboarding_complete')
@@ -47,25 +45,13 @@ export default function App() {
     switch (activeTab) {
       case 'map': return <MapView darkMode={darkMode} />
       case 'news': return <NewsView darkMode={darkMode} />
-      case 'octopus': 
-        if (octopusView === 'info') {
-          return <OctopusInfoView darkMode={darkMode} />
-        }
-        return <OctopusDealsView darkMode={darkMode} onShowInfo={() => setOctopusView('info')} />
       case 'traffic': return <TrafficView darkMode={darkMode} />
       case 'queue': return <QueueTimesView darkMode={darkMode} />
-      case 'ai': return <SmartAssistantView darkMode={darkMode} />
+      case 'automation': return <AutomationView darkMode={darkMode} />
       case 'profile': return <ProfileView darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
       default: return <MapView darkMode={darkMode} />
     }
   }
-
-  // 當切換tab時，重置八達通視圖
-  useEffect(() => {
-    if (activeTab !== 'octopus') {
-      setOctopusView('deals')
-    }
-  }, [activeTab])
 
   if (showOnboarding) {
     return (

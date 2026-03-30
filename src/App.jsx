@@ -10,6 +10,7 @@ import OnboardingView from './components/OnboardingView'
 import Header from './components/Header'
 import OctopusDealsView from './components/OctopusDealsView'
 import MTRAlertsView from './components/MTRAlertsView'
+import QueueTimesView from './components/QueueTimesView'
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('map')
@@ -44,10 +45,11 @@ export default function App() {
     switch (activeTab) {
       case 'map': return <MapView darkMode={darkMode} />
       case 'news': return <NewsView darkMode={darkMode} />
-      case 'ai': return <SmartAssistantView darkMode={darkMode} />
-      case 'profile': return <ProfileView darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
       case 'octopus': return <OctopusDealsView darkMode={darkMode} />
       case 'mtr': return <MTRAlertsView darkMode={darkMode} />
+      case 'queue': return <QueueTimesView darkMode={darkMode} />
+      case 'ai': return <SmartAssistantView darkMode={darkMode} />
+      case 'profile': return <ProfileView darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
       default: return <MapView darkMode={darkMode} />
     }
   }

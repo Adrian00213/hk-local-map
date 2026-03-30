@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Clock, Users, TrendingUp, TrendingDown, RefreshCw, MapPin, Star, AlertCircle, Info, ChevronRight, Filter, Heart, Share2, Navigation2 } from 'lucide-react'
+import { Clock, Users, TrendingUp, TrendingDown, RefreshCw, MapPin, Star, AlertCircle, Info, ChevronRight, Filter, Heart, Share2, Navigation2, Locate } from 'lucide-react'
+import { useMap } from '../context/MapContext'
 
 // 熱門景點排隊時間數據
 const POPULAR_ATTRACTIONS = [
@@ -151,6 +152,10 @@ export default function QueueTimesView({ darkMode }) {
   const [refreshing, setRefreshing] = useState(false)
   const [lastUpdate, setLastUpdate] = useState(new Date())
   const [selectedAttraction, setSelectedAttraction] = useState(null)
+  const { userLocation, locationError, refreshUserLocation } = useMap()
+  const [nearbyAttractions, setNearbyAttractions] = useState([])
+  const [locationStatus, setLocationStatus] = useState('loading')
+  const [userArea, setUserArea] = useState('香港')
 
   useEffect(() => {
     // 從localStorage加載已保存的景點
@@ -160,7 +165,49 @@ export default function QueueTimesView({ darkMode }) {
       saved: savedAttractions.includes(attraction.id)
     }))
     setAttractions(updatedAttractions)
-  }, [])
+    
+    // 更新位置狀態
+    updateLocationStatus()
+    // 加載附近景點
+    loadNearbyAttractions()
+  }, [userLocation, locationError])
+
+  const updateLocationStatus = () => {
+    if (userLocation && !locationError) {
+      setLocationStatus('located')
+      // 簡單區域判斷
+      const areas = {
+        'kowloon': '九龍',
+        'hk_island': '香港島', 
+        'new_territories': '新界'
+      }
+      setUserArea('香港')
+    } else if (locationError === 'denied') {
+      setLocationStatus('denied')
+    } else if (locationError === 'prompt') {
+      setLocationStatus('prompt')
+    } else {
+      setLocationStatus('unavailable')
+    }
+  }
+
+  const loadNearbyAttractions = () => {
+    if (userLocation && !locationError) {
+      // 模擬根據位置獲取附近景點（簡單距離計算）
+      const nearby = attractions
+        .filter(attraction => {
+          // 簡單距離篩選（實際應用中應該用Haversine公式）
+          const latDiff = Math.abs(attraction.coordinates.lat - userLocation.lat)
+          const lngDiff = Math.abs(attraction.coordinates.lng - userLocation.lng)
+          return latDiff < 0.1 && lngDiff < 0.1 // 約10公里範圍
+        })
+        .slice(0, 3) // 只顯示最近的3個
+      
+      setNearbyAttractions(nearby)
+    } else {
+      setNearbyAttractions([])
+    }
+  }
 
   const toggleSaveAttraction = (attractionId) => {
     const updatedAttractions = attractions.map(attraction => 

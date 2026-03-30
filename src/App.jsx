@@ -10,7 +10,7 @@ import OnboardingView from './components/OnboardingView'
 import Header from './components/Header'
 import OctopusDealsView from './components/OctopusDealsView'
 import OctopusInfoView from './components/OctopusInfoView'
-import MTRAlertsView from './components/MTRAlertsView'
+import TrafficView from './components/TrafficView'
 import QueueTimesView from './components/QueueTimesView'
 
 export default function App() {
@@ -52,7 +52,7 @@ export default function App() {
           return <OctopusInfoView darkMode={darkMode} />
         }
         return <OctopusDealsView darkMode={darkMode} onShowInfo={() => setOctopusView('info')} />
-      case 'mtr': return <MTRAlertsView darkMode={darkMode} />
+      case 'traffic': return <TrafficView darkMode={darkMode} />
       case 'queue': return <QueueTimesView darkMode={darkMode} />
       case 'ai': return <SmartAssistantView darkMode={darkMode} />
       case 'profile': return <ProfileView darkMode={darkMode} toggleDarkMode={toggleDarkMode} />

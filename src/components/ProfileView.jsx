@@ -57,30 +57,70 @@ const MENU_ITEMS = [
 ]
 
 export default function ProfileView({ darkMode, toggleDarkMode }) {
-  const { user, isAuthenticated, logout } = useAuth()
-  const { userLocation, locationError, refreshUserLocation } = useMap()
+  console.log('🔍 ProfileView渲染中，darkMode:', darkMode)
+  
+  // 安全地使用useAuth，避免Firebase配置錯誤
+  let authState = { user: null, isAuthenticated: false, logout: () => {} }
+  try {
+    authState = useAuth()
+    console.log('🔍 Auth狀態:', { user: authState.user, isAuthenticated: authState.isAuthenticated })
+  } catch (authError) {
+    console.warn('⚠️ AuthContext錯誤（可能Firebase未配置）:', authError)
+    // 繼續使用默認值
+  }
+  
+  const { user, isAuthenticated, logout } = authState
+  
+  // 安全地使用useMap
+  let mapState = { userLocation: null, locationError: null, refreshUserLocation: () => {} }
+  try {
+    mapState = useMap()
+    console.log('🔍 位置狀態:', { userLocation: mapState.userLocation, locationError: mapState.locationError })
+  } catch (mapError) {
+    console.warn('⚠️ MapContext錯誤:', mapError)
+    // 繼續使用默認值
+  }
+  
+  const { userLocation, locationError, refreshUserLocation } = mapState
+  
   const [savedDeals, setSavedDeals] = useState([])
   const [userReviews, setUserReviews] = useState([])
   const [favorites, setFavorites] = useState([])
   const [activeSection, setActiveSection] = useState(null) // 'deals' | 'reviews' | 'favorites'
   const [locationStatus, setLocationStatus] = useState('loading')
   const [userArea, setUserArea] = useState('香港')
+  
+  // 錯誤邊界 - 捕捉可能嘅錯誤
+  const [hasError, setHasError] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
-    // Load saved deals
-    const saved = localStorage.getItem('hk_saved_deals')
-    if (saved) {
-      const savedIds = JSON.parse(saved)
-      setSavedDeals(SAVED_DEALS.filter(d => savedIds.includes(d.id)))
+    try {
+      console.log('🔍 ProfileView useEffect執行中')
+      
+      // Load saved deals
+      const saved = localStorage.getItem('hk_saved_deals')
+      console.log('🔍 已保存優惠:', saved)
+      if (saved) {
+        const savedIds = JSON.parse(saved)
+        setSavedDeals(SAVED_DEALS.filter(d => savedIds.includes(d.id)))
+      }
+      setUserReviews(USER_REVIEWS)
+      
+      // Load favorites
+      const favs = localStorage.getItem('hk_favorites')
+      console.log('🔍 收藏地點:', favs)
+      if (favs) setFavorites(JSON.parse(favs))
+      
+      // Update location status
+      updateLocationStatus()
+      
+      setHasError(false)
+    } catch (error) {
+      console.error('❌ ProfileView錯誤:', error)
+      setHasError(true)
+      setErrorMessage(error.message)
     }
-    setUserReviews(USER_REVIEWS)
-    
-    // Load favorites
-    const favs = localStorage.getItem('hk_favorites')
-    if (favs) setFavorites(JSON.parse(favs))
-    
-    // Update location status
-    updateLocationStatus()
   }, [userLocation, locationError])
 
   const updateLocationStatus = () => {
@@ -283,6 +323,30 @@ export default function ProfileView({ darkMode, toggleDarkMode }) {
     )
   }
 
+  // 如果有錯誤，顯示錯誤訊息
+  if (hasError) {
+    return (
+      <div className={`h-full w-full flex flex-col items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-zinc-50'}`}>
+        <div className={`p-6 rounded-2xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg max-w-sm text-center`}>
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
+            <div className="text-2xl">❌</div>
+          </div>
+          <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-zinc-900'} mb-2`}>頁面加載錯誤</h3>
+          <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-zinc-600'} mb-4`}>{errorMessage}</p>
+          <button
+            onClick={() => {
+              setHasError(false)
+              window.location.reload()
+            }}
+            className={`px-4 py-2 rounded-lg font-medium ${darkMode ? 'bg-red-600 hover:bg-red-700' : 'bg-red-500 hover:bg-red-600'} text-white`}
+          >
+            重新加載
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   // Default Profile View
   return (
     <div className={`h-full w-full flex flex-col ${darkMode ? 'bg-gray-900' : 'bg-zinc-50'}`}>
@@ -478,9 +542,18 @@ export default function ProfileView({ darkMode, toggleDarkMode }) {
           {/* Logout Button */}
           {isAuthenticated && (
             <button
-              onClick={() => {
-                if (confirm('確定要登出嗎？')) {
-                  logout()
+              onClick={async () => {
+                try {
+                  if (confirm('確定要登出嗎？')) {
+                    console.log('🔍 嘗試登出...')
+                    await logout()
+                    console.log('✅ 登出成功')
+                    // 登出後重新加載頁面
+                    window.location.reload()
+                  }
+                } catch (error) {
+                  console.error('❌ 登出錯誤:', error)
+                  alert(`登出失敗: ${error.message}`)
                 }
               }}
               className="w-full flex items-center gap-4 px-4 py-4 hover:bg-red-50 transition-colors border-t border-zinc-100/80"

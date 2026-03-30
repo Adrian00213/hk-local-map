@@ -9,6 +9,7 @@ import ProfileView from './components/ProfileView'
 import OnboardingView from './components/OnboardingView'
 import Header from './components/Header'
 import OctopusDealsView from './components/OctopusDealsView'
+import OctopusInfoView from './components/OctopusInfoView'
 import MTRAlertsView from './components/MTRAlertsView'
 import QueueTimesView from './components/QueueTimesView'
 
@@ -16,6 +17,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('map')
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [darkMode, setDarkMode] = useState(false)
+  const [octopusView, setOctopusView] = useState('deals') // 'deals' or 'info'
 
   useEffect(() => {
     const seen = localStorage.getItem('hk_onboarding_complete')
@@ -45,7 +47,11 @@ export default function App() {
     switch (activeTab) {
       case 'map': return <MapView darkMode={darkMode} />
       case 'news': return <NewsView darkMode={darkMode} />
-      case 'octopus': return <OctopusDealsView darkMode={darkMode} />
+      case 'octopus': 
+        if (octopusView === 'info') {
+          return <OctopusInfoView darkMode={darkMode} />
+        }
+        return <OctopusDealsView darkMode={darkMode} onShowInfo={() => setOctopusView('info')} />
       case 'mtr': return <MTRAlertsView darkMode={darkMode} />
       case 'queue': return <QueueTimesView darkMode={darkMode} />
       case 'ai': return <SmartAssistantView darkMode={darkMode} />
@@ -53,6 +59,13 @@ export default function App() {
       default: return <MapView darkMode={darkMode} />
     }
   }
+
+  // 當切換tab時，重置八達通視圖
+  useEffect(() => {
+    if (activeTab !== 'octopus') {
+      setOctopusView('deals')
+    }
+  }, [activeTab])
 
   if (showOnboarding) {
     return (

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { CreditCard, Store, Bus, Train, Coffee, ShoppingBag, Clock, MapPin, Navigation2, Star, Filter, RefreshCw } from 'lucide-react'
+import { CreditCard, Store, Bus, Train, Coffee, ShoppingBag, Clock, MapPin, Navigation2, Star, Filter, RefreshCw, BookOpen, ChevronRight } from 'lucide-react'
 
 // 八達通優惠數據
 const OCTOPUS_DEALS = [
@@ -110,7 +110,7 @@ const CATEGORIES = [
   { id: '咖啡', label: '咖啡', icon: '☕' }
 ]
 
-export default function OctopusDealsView({ darkMode }) {
+export default function OctopusDealsView({ darkMode, onShowInfo }) {
   const [deals, setDeals] = useState(OCTOPUS_DEALS)
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [showSavedOnly, setShowSavedOnly] = useState(false)
@@ -183,12 +183,21 @@ export default function OctopusDealsView({ darkMode }) {
               <p className={`text-xs ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>全港精選八達通優惠</p>
             </div>
           </div>
-          <button 
-            onClick={handleRefresh}
-            className={`w-10 h-10 rounded-xl ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-yellow-100 hover:bg-yellow-200'} flex items-center justify-center transition-colors active:scale-95 ${refreshing ? 'animate-spin' : ''}`}
-          >
-            <RefreshCw className={`w-5 h-5 ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => onShowInfo && onShowInfo()}
+              className={`w-10 h-10 rounded-xl ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-yellow-100 hover:bg-yellow-200'} flex items-center justify-center transition-colors active:scale-95`}
+              title="八達通指南"
+            >
+              <BookOpen className={`w-5 h-5 ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`} />
+            </button>
+            <button 
+              onClick={handleRefresh}
+              className={`w-10 h-10 rounded-xl ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-yellow-100 hover:bg-yellow-200'} flex items-center justify-center transition-colors active:scale-95 ${refreshing ? 'animate-spin' : ''}`}
+            >
+              <RefreshCw className={`w-5 h-5 ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`} />
+            </button>
+          </div>
         </div>
       </div>
 

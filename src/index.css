@@ -37,6 +37,46 @@ html, body, #root {
 body {
   background: #FEFDF9;
   color: #292209;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+body.dark {
+  background: #121212;
+  color: #e0e0e0;
+}
+
+/* Dark mode styles */
+.dark .glass {
+  background: rgba(30, 30, 30, 0.92);
+}
+
+.dark .bg-gradient-warm {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+}
+
+.dark .shadow-xs { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); }
+.dark .shadow-sm { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.2); }
+.dark .shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.25), 0 2px 4px -1px rgba(0, 0, 0, 0.2); }
+.dark .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.25), 0 4px 6px -2px rgba(0, 0, 0, 0.2); }
+.dark .shadow-xl { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25), 0 10px 10px -5px rgba(0, 0, 0, 0.2); }
+.dark .shadow-yellow-soft { box-shadow: 0 4px 14px rgba(202, 138, 4, 0.25); }
+.dark .shadow-yellow-glow { box-shadow: 0 0 20px rgba(234, 179, 8, 0.4); }
+
+.dark .border-subtle {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark .card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.3);
+}
+
+.dark .btn-primary:hover {
+  box-shadow: 0 8px 16px rgba(234, 179, 8, 0.4);
+}
+
+.dark .animate-shimmer {
+  background: linear-gradient(90deg, #2d2d2d 25%, #3d3d3d 50%, #2d2d2d 75%);
 }
 
 /* Premium Shadows - Yellow/Gold tones */

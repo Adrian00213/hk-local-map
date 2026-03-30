@@ -11,11 +11,10 @@ import { searchForRecommendations, initPlacesService } from '../services/GoogleP
 const GOOGLE_MAPS_API_KEY = 'AIzaSyC4OsiPMTcrtqsIQB-3YGJIFcsJelBsZpw'
 const containerStyle = { width: '100%', height: '100%' }
 
-export default function MapView() {
+export default function MapView({ darkMode }) {
   const { markers, userLocation, locationError, selectedCategory, setSelectedCategory, refreshUserLocation } = useMap()
   const [showForm, setShowForm] = useState(false)
   const [selected, setSelected] = useState(null)
-  const [isDark, setIsDark] = useState(false)
   const [showNearby, setShowNearby] = useState(false)
   const [recommendations, setRecommendations] = useState([])
   const [currentRegion, setCurrentRegion] = useState('hong_kong')
@@ -29,9 +28,7 @@ export default function MapView() {
     if (saved) setCurrentRegion(saved)
   }, [])
 
-  useEffect(() => {
-    setIsDark(document.documentElement.classList.contains('dark'))
-  }, [])
+
 
   const { isLoaded } = useJsApiLoader({ 
     googleMapsApiKey: GOOGLE_MAPS_API_KEY,
@@ -166,22 +163,101 @@ export default function MapView() {
   }[currentRegion] || { lat: 22.3193, lng: 114.1694 }
 
   if (!isLoaded) return (
-    <div className="h-full w-full flex items-center justify-center bg-zinc-50">
+    <div className={`h-full w-full flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-zinc-50'}`}>
       <div className="text-center">
         <div className="w-12 h-12 border-[3px] border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-        <p className="text-zinc-500 text-sm font-medium">地圖緊係加载中...</p>
+        <p className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-zinc-500'}`}>地圖緊係加载中...</p>
       </div>
     </div>
   )
 
   return (
-    <div className="h-full w-full relative bg-zinc-100">
+    <div className={`h-full w-full relative ${darkMode ? 'bg-gray-900' : 'bg-zinc-100'}`}>
       <GoogleMap
         mapContainerStyle={containerStyle}
         center={userLocation || mapCenter}
         zoom={regionInfo.zoom || 14}
         options={{ 
-          styles: isDark ? [{ featureType: 'all', stylers: [{ saturation: -100 }] }] : [],
+          styles: darkMode ? [
+            { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+            { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+            { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+            {
+              featureType: "administrative.locality",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#d59563" }]
+            },
+            {
+              featureType: "poi",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#d59563" }]
+            },
+            {
+              featureType: "poi.park",
+              elementType: "geometry",
+              stylers: [{ color: "#263c3f" }]
+            },
+            {
+              featureType: "poi.park",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#6b9a76" }]
+            },
+            {
+              featureType: "road",
+              elementType: "geometry",
+              stylers: [{ color: "#38414e" }]
+            },
+            {
+              featureType: "road",
+              elementType: "geometry.stroke",
+              stylers: [{ color: "#212a37" }]
+            },
+            {
+              featureType: "road",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#9ca5b3" }]
+            },
+            {
+              featureType: "road.highway",
+              elementType: "geometry",
+              stylers: [{ color: "#746855" }]
+            },
+            {
+              featureType: "road.highway",
+              elementType: "geometry.stroke",
+              stylers: [{ color: "#1f2835" }]
+            },
+            {
+              featureType: "road.highway",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#f3d19c" }]
+            },
+            {
+              featureType: "transit",
+              elementType: "geometry",
+              stylers: [{ color: "#2f3948" }]
+            },
+            {
+              featureType: "transit.station",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#d59563" }]
+            },
+            {
+              featureType: "water",
+              elementType: "geometry",
+              stylers: [{ color: "#17263c" }]
+            },
+            {
+              featureType: "water",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#515c6d" }]
+            },
+            {
+              featureType: "water",
+              elementType: "labels.text.stroke",
+              stylers: [{ color: "#17263c" }]
+            }
+          ] : [],
           disableDefaultUI: true,
           zoomControl: false,
           fullscreenControl: false,

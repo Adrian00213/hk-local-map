@@ -132,7 +132,7 @@ const catIcons = {
   news: Newspaper
 }
 
-export default function NewsView() {
+export default function NewsView({ darkMode }) {
   const [region, setRegion] = useState('hong_kong')
   const [activeCat, setActiveCat] = useState(null)
   const [nearbyPlaces, setNearbyPlaces] = useState([])
@@ -190,17 +190,17 @@ export default function NewsView() {
     : nearbyPlaces
 
   return (
-    <div className="h-full w-full flex flex-col bg-gradient-to-b from-amber-50/50 to-white">
+    <div className={`h-full w-full flex flex-col ${darkMode ? 'bg-gradient-to-b from-gray-900 to-gray-800' : 'bg-gradient-to-b from-amber-50/50 to-white'}`}>
       {/* Header */}
-      <div className="bg-white/80 backdrop-blur-xl border-b border-amber-100/50 px-5 pt-5 pb-4">
+      <div className={`${darkMode ? 'bg-gray-800/80 border-gray-700' : 'bg-white/80 border-amber-100/50'} backdrop-blur-xl border-b px-5 pt-5 pb-4`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-yellow-500 to-yellow-600 flex items-center justify-center shadow-lg shadow-amber-200/50">
               <Newspaper className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-zinc-900">📰 資訊中心</h1>
-              <p className="text-xs text-yellow-600">為你精挑細選</p>
+              <h1 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-zinc-900'}`}>📰 資訊中心</h1>
+              <p className={`text-xs ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>為你精挑細選</p>
             </div>
           </div>
           <button 

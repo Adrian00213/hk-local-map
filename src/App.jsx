@@ -8,6 +8,8 @@ import SmartAssistantView from './components/SmartAssistantView'
 import ProfileView from './components/ProfileView'
 import OnboardingView from './components/OnboardingView'
 import Header from './components/Header'
+import OctopusDealsView from './components/OctopusDealsView'
+import MTRAlertsView from './components/MTRAlertsView'
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('map')
@@ -44,6 +46,8 @@ export default function App() {
       case 'news': return <NewsView darkMode={darkMode} />
       case 'ai': return <SmartAssistantView darkMode={darkMode} />
       case 'profile': return <ProfileView darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+      case 'octopus': return <OctopusDealsView darkMode={darkMode} />
+      case 'mtr': return <MTRAlertsView darkMode={darkMode} />
       default: return <MapView darkMode={darkMode} />
     }
   }

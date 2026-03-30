@@ -1,8 +1,10 @@
-import { Map, Newspaper, Brain, User } from 'lucide-react'
+import { Map, Newspaper, Brain, User, CreditCard, Train } from 'lucide-react'
 
 const tabs = [
   { id: 'map', icon: Map, label: '地圖' },
   { id: 'news', icon: Newspaper, label: '資訊' },
+  { id: 'octopus', icon: CreditCard, label: '八達通' },
+  { id: 'mtr', icon: Train, label: 'MTR' },
   { id: 'ai', icon: Brain, label: 'AI助理' },
   { id: 'profile', icon: User, label: '我的' },
 ]

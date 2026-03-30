@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Car, Train, Bus, AlertTriangle, Clock, MapPin, RefreshCw, ChevronRight, Info, Navigation2, TrendingUp, TrendingDown, Wifi, Cloud, Droplets, Thermometer, Wind } from 'lucide-react'
+import { Car, Train, Bus, AlertTriangle, Clock, MapPin, RefreshCw, ChevronRight, Info, Navigation2, TrendingUp, TrendingDown, Wifi, Cloud, Droplets, Thermometer, Wind, Locate, Navigation2 as NavigationIcon } from 'lucide-react'
+import { useMap } from '../context/MapContext'
 
 // 交通狀況數據
 const TRAFFIC_CONDITIONS = [
@@ -94,6 +95,10 @@ export default function TrafficView({ darkMode }) {
   const [refreshing, setRefreshing] = useState(false)
   const [lastUpdate, setLastUpdate] = useState(new Date())
   const [activeTab, setActiveTab] = useState('overview') // overview, roads, mtr, buses
+  const { userLocation, locationError, refreshUserLocation } = useMap()
+  const [nearbyTraffic, setNearbyTraffic] = useState([])
+  const [userArea, setUserArea] = useState('香港')
+  const [locationStatus, setLocationStatus] = useState('loading')
 
   useEffect(() => {
     // 模擬實時更新
@@ -101,8 +106,79 @@ export default function TrafficView({ darkMode }) {
       setLastUpdate(new Date())
     }, 60000)
     
+    // 更新位置狀態
+    updateLocationStatus()
+    // 加載附近交通
+    loadNearbyTraffic()
+    
     return () => clearInterval(interval)
-  }, [])
+  }, [userLocation, locationError])
+
+  const updateLocationStatus = () => {
+    if (userLocation && !locationError) {
+      setLocationStatus('located')
+      // 簡單區域判斷
+      const areas = {
+        'kowloon': '九龍',
+        'hk_island': '香港島', 
+        'new_territories': '新界'
+      }
+      setUserArea('香港')
+    } else if (locationError === 'denied') {
+      setLocationStatus('denied')
+    } else if (locationError === 'prompt') {
+      setLocationStatus('prompt')
+    } else {
+      setLocationStatus('unavailable')
+    }
+  }
+
+  const loadNearbyTraffic = () => {
+    if (userLocation && !locationError) {
+      // 模擬根據位置獲取附近交通
+      const nearby = [
+        {
+          id: 'nearby_1',
+          name: '附近主要道路',
+          type: 'road',
+          icon: '🚗',
+          status: '暢通',
+          delay: '5分鐘',
+          severity: 'low',
+          description: '你所在區域交通暢順',
+          lastUpdated: new Date().toISOString(),
+          distance: '1-3公里內'
+        },
+        {
+          id: 'nearby_2',
+          name: '最近地鐵站',
+          type: 'mtr',
+          icon: '🚇',
+          status: '正常',
+          delay: '2分鐘',
+          severity: 'low',
+          description: '列車服務正常',
+          lastUpdated: new Date().toISOString(),
+          distance: '步行5分鐘'
+        },
+        {
+          id: 'nearby_3',
+          name: '巴士服務',
+          type: 'bus',
+          icon: '🚌',
+          status: '正常',
+          delay: '3分鐘',
+          severity: 'low',
+          description: '附近巴士線運作正常',
+          lastUpdated: new Date().toISOString(),
+          distance: '附近'
+        }
+      ]
+      setNearbyTraffic(nearby)
+    } else {
+      setNearbyTraffic([])
+    }
+  }
 
   const handleRefresh = () => {
     setRefreshing(true)
@@ -169,6 +245,52 @@ export default function TrafficView({ darkMode }) {
 
   const renderOverview = () => (
     <>
+      {/* Nearby Traffic Card */}
+      {nearbyTraffic.length > 0 && (
+        <div className={`rounded-2xl overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg mb-4`}>
+          <div className="h-2 bg-gradient-to-r from-green-500 to-emerald-500" />
+          <div className="p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Locate className={`w-5 h-5 ${darkMode ? 'text-green-400' : 'text-green-600'}`} />
+              <h3 className={`font-bold ${darkMode ? 'text-white' : 'text-zinc-900'}`}>附近交通狀況</h3>
+            </div>
+            
+            <div className="space-y-2">
+              {nearbyTraffic.map(item => (
+                <div key={item.id} className={`p-3 rounded-xl ${darkMode ? 'bg-gray-700' : 'bg-green-50'} border ${darkMode ? 'border-gray-600' : 'border-green-200'}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="text-2xl">{item.icon}</div>
+                      <div>
+                        <div className={`font-medium ${darkMode ? 'text-white' : 'text-zinc-900'}`}>
+                          {item.name}
+                        </div>
+                        <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-green-600'}`}>
+                          {item.distance} • {item.description}
+                        </div>
+                      </div>
+                    </div>
+                    <div className={`px-2 py-1 rounded-lg text-xs font-medium ${getStatusBgColor(item.status)}`}>
+                      {item.delay}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="mt-3 text-center">
+              <button
+                onClick={refreshUserLocation}
+                className={`text-xs ${darkMode ? 'text-green-400' : 'text-green-600'} font-medium flex items-center justify-center gap-1 w-full`}
+              >
+                <RefreshCw className="w-3 h-3" />
+                更新附近交通
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Weather Card */}
       <div className={`rounded-2xl overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg mb-4`}>
         <div className="h-2 bg-gradient-to-r from-blue-500 to-cyan-500" />
@@ -531,6 +653,62 @@ export default function TrafficView({ darkMode }) {
           >
             <RefreshCw className={`w-5 h-5 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
           </button>
+        </div>
+      </div>
+
+      {/* Location Status */}
+      <div className={`px-5 py-2 border-b ${
+        locationStatus === 'located' 
+          ? 'bg-gradient-to-r from-green-50 to-green-100/50 border-green-200' 
+          : locationStatus === 'denied'
+          ? 'bg-gradient-to-r from-red-50 to-red-100/50 border-red-200'
+          : locationStatus === 'prompt'
+          ? 'bg-gradient-to-r from-blue-50 to-blue-100/50 border-blue-200'
+          : 'bg-gradient-to-r from-yellow-50 to-yellow-100/50 border-yellow-200'
+      }`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className={`w-3 h-3 rounded-full ${
+              locationStatus === 'located' 
+                ? 'bg-green-500' 
+                : locationStatus === 'denied'
+                ? 'bg-red-500'
+                : locationStatus === 'prompt'
+                ? 'bg-blue-500'
+                : 'bg-yellow-500'
+            }`} />
+            <span className={`text-xs font-medium ${
+              locationStatus === 'located' 
+                ? 'text-green-700' 
+                : locationStatus === 'denied'
+                ? 'text-red-700'
+                : locationStatus === 'prompt'
+                ? 'text-blue-700'
+                : 'text-yellow-700'
+            }`}>
+              {locationStatus === 'located' 
+                ? `📍 ${userArea} 交通狀況` 
+                : locationStatus === 'denied'
+                ? '❌ 無法獲取位置'
+                : locationStatus === 'prompt'
+                ? '❓ 等待位置權限'
+                : '📍 定位中...'}
+            </span>
+          </div>
+          {locationStatus !== 'located' && (
+            <button
+              onClick={refreshUserLocation}
+              className={`px-2 py-0.5 rounded text-xs font-medium ${
+                locationStatus === 'denied' 
+                  ? 'bg-red-500 hover:bg-red-600 text-white' 
+                  : locationStatus === 'prompt'
+                  ? 'bg-blue-500 hover:bg-blue-600 text-white'
+                  : 'bg-yellow-500 hover:bg-yellow-600 text-white'
+              }`}
+            >
+              重試
+            </button>
+          )}
         </div>
       </div>
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Newspaper, Clock, MapPin, Brain, Star, TrendingUp, Gift, AlertCircle, RefreshCw, Navigation, Utensils, Compass, Bus, Coffee, ShoppingBag, Home, Navigation2, Megaphone, Zap } from 'lucide-react'
-import { CATEGORY_ICONS, CATEGORY_LABELS } from '../context/MapContext'
+import { Newspaper, Clock, MapPin, Brain, Star, TrendingUp, Gift, AlertCircle, RefreshCw, Navigation, Utensils, Compass, Bus, Coffee, ShoppingBag, Home, Navigation2, Megaphone, Zap, Locate, Navigation2 as NavigationIcon } from 'lucide-react'
+import { CATEGORY_ICONS, CATEGORY_LABELS, useMap } from '../context/MapContext'
 import { getPlaces } from '../services/MapData'
 
 // Static news/messages data
@@ -138,11 +138,68 @@ export default function NewsView({ darkMode }) {
   const [nearbyPlaces, setNearbyPlaces] = useState([])
   const [refreshing, setRefreshing] = useState(false)
   const [lastUpdate, setLastUpdate] = useState(new Date())
+  const { userLocation, locationError, refreshUserLocation } = useMap()
+  const [nearbyNews, setNearbyNews] = useState([])
+  const [locationStatus, setLocationStatus] = useState('loading')
+  const [userDistrict, setUserDistrict] = useState('香港')
 
   useEffect(() => {
     // Load nearby places
     loadNearbyPlaces()
-  }, [region])
+    // Update location status
+    updateLocationStatus()
+    // Load location-based news
+    loadLocationBasedNews()
+  }, [region, userLocation, locationError])
+
+  const updateLocationStatus = () => {
+    if (userLocation && !locationError) {
+      setLocationStatus('located')
+      // 簡單嘅區域判斷（實際應用中應該用逆地理編碼）
+      const hkDistricts = {
+        'kowloon': ['九龍', '尖沙咀', '旺角', '油麻地', '深水埗'],
+        'hk_island': ['香港島', '中環', '銅鑼灣', '灣仔', '北角'],
+        'new_territories': ['新界', '沙田', '大埔', '元朗', '屯門']
+      }
+      // 這裡可以加入實際嘅逆地理編碼邏輯
+      setUserDistrict('香港')
+    } else if (locationError === 'denied') {
+      setLocationStatus('denied')
+    } else if (locationError === 'prompt') {
+      setLocationStatus('prompt')
+    } else {
+      setLocationStatus('unavailable')
+    }
+  }
+
+  const loadLocationBasedNews = () => {
+    if (userLocation && !locationError) {
+      // 模擬根據位置獲取新聞
+      const locationNews = [
+        {
+          id: 'loc_news_1',
+          title: `📍 ${userDistrict} 地區資訊`,
+          desc: '根據你的位置為你推薦附近活動同優惠',
+          source: '本地推薦',
+          time: '即時',
+          badge: '📍 附近',
+          urgent: true
+        },
+        {
+          id: 'loc_news_2',
+          title: '🚗 附近交通狀況',
+          desc: '你所在區域交通暢順，預計出行時間正常',
+          source: '交通資訊',
+          time: '即時',
+          badge: '🚗 交通',
+          urgent: false
+        }
+      ]
+      setNearbyNews(locationNews)
+    } else {
+      setNearbyNews([])
+    }
+  }
 
   const loadNearbyPlaces = () => {
     setRefreshing(true)
@@ -209,6 +266,83 @@ export default function NewsView({ darkMode }) {
           >
             <RefreshCw className="w-5 h-5 text-yellow-600" />
           </button>
+        </div>
+      </div>
+
+      {/* Location Status Banner */}
+      <div className={`px-5 py-3 border-b ${
+        locationStatus === 'located' 
+          ? 'bg-gradient-to-r from-green-100 to-green-50 border-green-200/50' 
+          : locationStatus === 'denied'
+          ? 'bg-gradient-to-r from-red-100 to-red-50 border-red-200/50'
+          : locationStatus === 'prompt'
+          ? 'bg-gradient-to-r from-blue-100 to-blue-50 border-blue-200/50'
+          : 'bg-gradient-to-r from-yellow-100 to-yellow-50 border-yellow-200/50'
+      }`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+              locationStatus === 'located' 
+                ? 'bg-green-500' 
+                : locationStatus === 'denied'
+                ? 'bg-red-500'
+                : locationStatus === 'prompt'
+                ? 'bg-blue-500'
+                : 'bg-yellow-500'
+            }`}>
+              <Locate className="w-3 h-3 text-white" />
+            </div>
+            <div>
+              <span className={`text-sm font-medium ${
+                locationStatus === 'located' 
+                  ? 'text-green-700' 
+                  : locationStatus === 'denied'
+                  ? 'text-red-700'
+                  : locationStatus === 'prompt'
+                  ? 'text-blue-700'
+                  : 'text-yellow-700'
+              }`}>
+                {locationStatus === 'located' 
+                  ? `📍 已定位：${userDistrict}地區` 
+                  : locationStatus === 'denied'
+                  ? '❌ 位置權限被拒絕'
+                  : locationStatus === 'prompt'
+                  ? '❓ 等待位置權限'
+                  : '📍 定位中...'}
+              </span>
+              <p className={`text-xs ${
+                locationStatus === 'located' 
+                  ? 'text-green-600' 
+                  : locationStatus === 'denied'
+                  ? 'text-red-600'
+                  : locationStatus === 'prompt'
+                  ? 'text-blue-600'
+                  : 'text-yellow-600'
+              }`}>
+                {locationStatus === 'located' 
+                  ? '根據你的位置提供個性化資訊' 
+                  : locationStatus === 'denied'
+                  ? '允許位置權限以獲取附近資訊'
+                  : locationStatus === 'prompt'
+                  ? '請允許瀏覽器獲取你的位置'
+                  : '正在獲取你的位置...'}
+              </p>
+            </div>
+          </div>
+          {locationStatus !== 'located' && (
+            <button
+              onClick={refreshUserLocation}
+              className={`px-3 py-1 rounded-lg text-xs font-medium ${
+                locationStatus === 'denied' 
+                  ? 'bg-red-500 hover:bg-red-600 text-white' 
+                  : locationStatus === 'prompt'
+                  ? 'bg-blue-500 hover:bg-blue-600 text-white'
+                  : 'bg-yellow-500 hover:bg-yellow-600 text-white'
+              }`}
+            >
+              重試
+            </button>
+          )}
         </div>
       </div>
 
@@ -366,9 +500,48 @@ export default function NewsView({ darkMode }) {
           <div className="flex items-center gap-2 mb-3">
             <Megaphone className="w-5 h-5 text-yellow-600" />
             <h2 className="font-bold text-zinc-900">最新消息</h2>
-            <span className="ml-auto text-xs text-zinc-400">{STATIC_NEWS.length} 則</span>
+            <span className="ml-auto text-xs text-zinc-400">{STATIC_NEWS.length + nearbyNews.length} 則</span>
           </div>
 
+          {/* Location-based News */}
+          {nearbyNews.length > 0 && (
+            <div className="mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <MapPin className="w-4 h-4 text-green-600" />
+                <h3 className="text-sm font-semibold text-green-700">📍 附近資訊</h3>
+              </div>
+              <div className="space-y-2">
+                {nearbyNews.map(news => (
+                  <div
+                    key={news.id}
+                    className="bg-gradient-to-r from-green-50 to-green-100/50 rounded-xl border border-green-200 p-4 shadow-sm"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center shrink-0">
+                        <MapPin className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-lg bg-green-200 text-green-700">
+                            {news.badge}
+                          </span>
+                          <span className="text-[10px] text-green-600">{news.source}</span>
+                        </div>
+                        <h4 className="font-semibold text-green-900 text-sm leading-tight line-clamp-1">{news.title}</h4>
+                        <p className="text-xs text-green-700 mt-1 line-clamp-2">{news.desc}</p>
+                        <div className="flex items-center gap-1 mt-2">
+                          <Clock className="w-3 h-3 text-green-500" />
+                          <span className="text-[10px] text-green-600">{news.time}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* General News */}
           <div className="space-y-2">
             {STATIC_NEWS.map(news => (
               <div

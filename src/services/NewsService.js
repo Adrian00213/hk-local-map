@@ -359,6 +359,190 @@ class NewsService {
     return baseNews
   }
 
+  // 獲取區域特定優惠
+  getRegionSpecificDeals(regionInfo) {
+    const now = new Date()
+    const hour = now.getHours()
+    const day = now.getDay()
+    
+    const baseDeals = []
+    
+    switch (regionInfo.region) {
+      case 'hong_kong':
+        baseDeals.push(
+          {
+            id: 'hk_deal_1',
+            type: 'deal',
+            title: '🎉 香港美食節 2026',
+            message: '超過200間本地及國際美食參與，多間餐廳推出限定優惠',
+            priority: 'high',
+            icon: '🍜',
+            category: 'food',
+            expiry: '2026-04-15',
+            timestamp: now.toISOString()
+          },
+          {
+            id: 'hk_deal_2',
+            type: 'deal',
+            title: '💳 AlipayHK 消費券',
+            message: '用 AlipayHK 付款最高回贈 $500，指定商戶再享額外折扣',
+            priority: 'medium',
+            icon: '💰',
+            category: 'shopping',
+            expiry: '2026-04-30',
+            timestamp: now.toISOString()
+          },
+          {
+            id: 'hk_deal_3',
+            title: '🛍️ 海港城春季購物節',
+            message: '超過500間商店參與，最高7折優惠',
+            type: 'deal',
+            priority: 'medium',
+            icon: '🛒',
+            category: 'shopping',
+            expiry: '2026-04-20',
+            timestamp: now.toISOString()
+          },
+          {
+            id: 'hk_deal_4',
+            type: 'deal',
+            title: '☕ 咖啡店買一送一',
+            message: '指定咖啡店下午茶時段優惠 (2pm-5pm)',
+            priority: 'low',
+            icon: '☕',
+            category: 'food',
+            expiry: '2026-04-10',
+            timestamp: now.toISOString()
+          },
+          {
+            id: 'hk_deal_5',
+            type: 'deal',
+            title: '🚇 MTR 週末優惠',
+            message: '八達通週日免費轉乘優惠，環保出行慳更多',
+            priority: 'medium',
+            icon: '🚇',
+            category: 'transport',
+            expiry: '2026-12-31',
+            timestamp: now.toISOString()
+          }
+        )
+        
+        // 時間特定優惠
+        if (hour >= 6 && hour <= 10) {
+          baseDeals.push({
+            id: 'hk_morning_deal',
+            type: 'deal',
+            title: '☀️ 早晨優惠',
+            message: '指定茶餐廳早餐套餐 $35',
+            priority: 'medium',
+            icon: '🌅',
+            category: 'food',
+            expiry: '2026-04-30',
+            timestamp: now.toISOString()
+          })
+        }
+        
+        if (hour >= 14 && hour <= 17) {
+          baseDeals.push({
+            id: 'hk_afternoon_deal',
+            type: 'deal',
+            title: '🕑 下午茶時段',
+            message: '咖啡店買一送一，2pm-5pm',
+            priority: 'medium',
+            icon: '🕑',
+            category: 'food',
+            expiry: '2026-04-30',
+            timestamp: now.toISOString()
+          })
+        }
+        
+        if (hour >= 18 && hour <= 22) {
+          baseDeals.push({
+            id: 'hk_evening_deal',
+            type: 'deal',
+            title: '🌃 晚餐優惠',
+            message: '指定餐廳晚市8折',
+            priority: 'medium',
+            icon: '🌙',
+            category: 'food',
+            expiry: '2026-04-30',
+            timestamp: now.toISOString()
+          })
+        }
+        break
+        
+      case 'japan':
+        baseDeals.push(
+          {
+            id: 'jp_deal_1',
+            type: 'deal',
+            title: '🎌 日本旅遊優惠',
+            message: 'JR Pass 7日券特價優惠',
+            priority: 'high',
+            icon: '🚅',
+            category: 'transport',
+            expiry: '2026-12-31',
+            timestamp: now.toISOString()
+          },
+          {
+            id: 'jp_deal_2',
+            type: 'deal',
+            title: '🏮 溫泉旅館優惠',
+            message: '指定溫泉旅館住宿連晚餐8折',
+            priority: 'medium',
+            icon: '♨️',
+            category: 'accommodation',
+            expiry: '2026-06-30',
+            timestamp: now.toISOString()
+          }
+        )
+        break
+        
+      case 'taiwan':
+        baseDeals.push(
+          {
+            id: 'tw_deal_1',
+            type: 'deal',
+            title: '🍢 夜市美食優惠',
+            message: '指定夜市攤位消費滿$100送$20',
+            priority: 'medium',
+            icon: '🏮',
+            category: 'food',
+            expiry: '2026-05-31',
+            timestamp: now.toISOString()
+          },
+          {
+            id: 'tw_deal_2',
+            type: 'deal',
+            title: '🚆 高鐵早鳥票',
+            message: '提前14日購票享65折優惠',
+            priority: 'high',
+            icon: '🚄',
+            category: 'transport',
+            expiry: '2026-12-31',
+            timestamp: now.toISOString()
+          }
+        )
+        break
+        
+      default:
+        // 通用優惠
+        baseDeals.push({
+          id: 'general_deal',
+          type: 'deal',
+          title: '🌍 旅遊優惠',
+          message: '查看當地旅遊局網站獲取最新優惠',
+          priority: 'low',
+          icon: '✈️',
+          category: 'travel',
+          expiry: '2026-12-31',
+          timestamp: now.toISOString()
+        })
+    }
+    
+    return baseDeals
+  }
+
   // 獲取實時資訊（根據位置）
   getRealTimeNews(latitude, longitude) {
     try {
@@ -371,6 +555,12 @@ class NewsService {
       
       // 獲取區域特定資訊
       let news = this.getRegionSpecificNews(regionInfo)
+      
+      // 獲取區域特定優惠
+      if (this.userPreferences.showDeals) {
+        const deals = this.getRegionSpecificDeals(regionInfo)
+        news = [...news, ...deals]
+      }
       
       // 根據用戶偏好過濾
       news = news.filter(item => {
@@ -387,7 +577,7 @@ class NewsService {
       news.sort((a, b) => priorityOrder[b.priority] - priorityOrder[a.priority])
       
       // 限制數量
-      news = news.slice(0, 8)
+      news = news.slice(0, 12)
       
       // 添加時間標記
       news = news.map(item => ({

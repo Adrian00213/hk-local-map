@@ -74,6 +74,9 @@ export default function NewsView({ darkMode }) {
       transport: 'from-emerald-500 to-teal-500',
       food: 'from-orange-500 to-amber-500',
       event: 'from-purple-500 to-violet-500',
+      deal: 'from-pink-500 to-rose-500',
+      finance: 'from-yellow-500 to-yellow-600',
+      safety: 'from-red-500 to-rose-500',
       info: 'from-gray-500 to-slate-500'
     }
     return colors[type] || 'from-gray-500 to-slate-500'
@@ -154,22 +157,49 @@ export default function NewsView({ darkMode }) {
                       <div className="text-2xl">{item.icon}</div>
                     </div>
                     <div className="flex-1">
-                      <h3 className={`font-bold ${darkMode ? 'text-white' : 'text-zinc-900'} mb-2`}>
-                        {item.title}
-                      </h3>
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <h3 className={`font-bold ${darkMode ? 'text-white' : 'text-zinc-900'}`}>
+                          {item.title}
+                        </h3>
+                        {item.type === 'deal' && (
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${darkMode ? 'bg-pink-900 text-pink-300' : 'bg-pink-100 text-pink-700'} shrink-0`}>
+                            優惠
+                          </span>
+                        )}
+                      </div>
                       <p className={`${darkMode ? 'text-gray-300' : 'text-zinc-600'} mb-3`}>
                         {item.message}
                       </p>
                       <div className="flex items-center justify-between">
-                        <span className={`px-2 py-0.5 rounded text-xs ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-zinc-600'}`}>
-                          {item.type === 'local' ? '本地' : 
-                           item.type === 'weather' ? '天氣' :
-                           item.type === 'transport' ? '交通' :
-                           item.type === 'food' ? '飲食' : '資訊'}
-                        </span>
-                        <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-zinc-500'}`}>
-                          {new Date(item.timestamp).toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' })}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2 py-0.5 rounded text-xs ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-zinc-600'}`}>
+                            {item.type === 'local' ? '本地' : 
+                             item.type === 'weather' ? '天氣' :
+                             item.type === 'transport' ? '交通' :
+                             item.type === 'food' ? '飲食' :
+                             item.type === 'deal' ? '優惠' :
+                             item.type === 'event' ? '活動' : '資訊'}
+                          </span>
+                          {item.category && (
+                            <span className={`px-2 py-0.5 rounded text-xs ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-zinc-600'}`}>
+                              {item.category === 'food' ? '飲食' :
+                               item.category === 'shopping' ? '購物' :
+                               item.category === 'transport' ? '交通' :
+                               item.category === 'accommodation' ? '住宿' :
+                               item.category === 'travel' ? '旅遊' : item.category}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-col items-end">
+                          <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-zinc-500'}`}>
+                            {new Date(item.timestamp).toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                          {item.expiry && (
+                            <span className={`text-xs ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>
+                              到期: {item.expiry.split('-')[2]}/{item.expiry.split('-')[1]}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>

@@ -210,7 +210,7 @@ export default function NewsView({ darkMode }) {
                 <p className={`${darkMode ? 'text-gray-300' : 'text-zinc-600'} mb-3`}>
                   {post.content}
                 </p>
-                <div className="flex items-center gap-4 pt-3 border-t ${darkMode ? 'border-gray-700' : 'border-zinc-100'}`}>
+                <div className={`flex items-center gap-4 pt-3 border-t ${darkMode ? 'border-gray-700' : 'border-zinc-100'}`}>
                   <div className={`flex items-center gap-1.5 ${darkMode ? 'text-gray-400' : 'text-zinc-500'}`}>
                     <div className="text-lg">❤️</div>
                     <span className="text-sm">{post.likes}</span>

@@ -1,85 +1,86 @@
 import { useState, useEffect } from 'react'
-import { Newspaper, RefreshCw, Settings, Globe, AlertCircle } from 'lucide-react'
+import { Newspaper, RefreshCw, MessageCircle, Plus, Globe, AlertCircle } from 'lucide-react'
 import { useMap } from '../context/MapContext'
 import newsService from '../services/NewsService'
+import communityService from '../services/CommunityService'
 
 export default function NewsView({ darkMode }) {
   const { userLocation, locationError, refreshUserLocation } = useMap()
   const [newsItems, setNewsItems] = useState([])
-  const [refreshing, setRefreshing] = useState(false)
+  const [communityPosts, setCommunityPosts] = useState([])
+  const [activeTab, setActiveTab] = useState('news')
   const [currentRegion, setCurrentRegion] = useState('未知地區')
 
-  // 加載資訊
   useEffect(() => {
-    loadNews()
-  }, [userLocation])
+    if (activeTab === 'news') {
+      loadNews()
+    } else {
+      loadCommunityPosts()
+    }
+  }, [userLocation, activeTab])
 
   const loadNews = () => {
-    setRefreshing(true)
-    
     try {
       let news = []
-      
       if (userLocation && !locationError) {
         news = newsService.getRealTimeNews(userLocation.lat, userLocation.lng)
         const regionInfo = newsService.getRegionInfo(userLocation.lat, userLocation.lng)
         setCurrentRegion(regionInfo.name)
       } else {
-        news = [
-          {
-            id: 'no_location',
-            type: 'info',
-            title: '📍 等待位置資訊',
-            message: '請允許位置權限以獲取本地資訊',
-            priority: 'info',
-            icon: '📍',
-            timestamp: new Date().toISOString()
-          }
-        ]
+        news = [{
+          id: 'no_location',
+          type: 'info',
+          title: '📍 等待位置資訊',
+          message: '請允許位置權限以獲取本地資訊',
+          priority: 'info',
+          icon: '📍',
+          timestamp: new Date().toISOString()
+        }]
         setCurrentRegion('未知地區')
       }
-      
       setNewsItems(news)
     } catch (error) {
       console.error('❌ 加載資訊失敗:', error)
-      setNewsItems([
-        {
-          id: 'error',
-          type: 'error',
-          title: '❌ 加載失敗',
-          message: '無法加載資訊，請稍後再試',
-          priority: 'high',
-          icon: '⚠️',
-          timestamp: new Date().toISOString()
-        }
-      ])
-    } finally {
-      setRefreshing(false)
     }
   }
 
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'high': return 'bg-red-500'
-      case 'medium': return 'bg-yellow-500'
-      case 'low': return 'bg-green-500'
-      default: return 'bg-blue-500'
+  const loadCommunityPosts = () => {
+    try {
+      let posts = []
+      if (userLocation && !locationError) {
+        posts = communityService.getNearbyPosts(userLocation.lat, userLocation.lng, 10, 10)
+        const regionInfo = newsService.getRegionInfo(userLocation.lat, userLocation.lng)
+        setCurrentRegion(regionInfo.name)
+      } else {
+        posts = communityService.getPopularPosts(10)
+        setCurrentRegion('附近')
+      }
+      setCommunityPosts(posts)
+    } catch (error) {
+      console.error('❌ 加載社區發佈失敗:', error)
     }
   }
 
-  const getTypeColor = (type) => {
-    const colors = {
-      local: 'from-blue-500 to-cyan-500',
-      weather: 'from-sky-500 to-blue-500',
-      transport: 'from-emerald-500 to-teal-500',
-      food: 'from-orange-500 to-amber-500',
-      event: 'from-purple-500 to-violet-500',
-      deal: 'from-pink-500 to-rose-500',
-      finance: 'from-yellow-500 to-yellow-600',
-      safety: 'from-red-500 to-rose-500',
-      info: 'from-gray-500 to-slate-500'
+  const handleCreatePost = () => {
+    const content = prompt('分享你身邊嘅新鮮事：')
+    if (!content) return
+    
+    try {
+      const postData = {
+        content: content,
+        category: 'general',
+        location: userLocation || { lat: 22.3193, lng: 114.1694 },
+        locationName: currentRegion,
+        username: '我',
+        userAvatar: '👤'
+      }
+      communityService.createPost(postData)
+      loadCommunityPosts()
+      alert('發佈成功！')
+    } catch (error) {
+      console.error('❌ 發佈失敗:', error)
+      alert('發佈失敗')
     }
-    return colors[type] || 'from-gray-500 to-slate-500'
   }
 
   return (
@@ -92,7 +93,9 @@ export default function NewsView({ darkMode }) {
               <Newspaper className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-zinc-900'}`}>智能資訊</h1>
+              <h1 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-zinc-900'}`}>
+                {activeTab === 'news' ? '智能資訊' : '即時新聞'}
+              </h1>
               <div className="flex items-center gap-2 mt-1">
                 <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${darkMode ? 'bg-gray-700 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
                   <Globe className="w-3 h-3" />
@@ -101,16 +104,47 @@ export default function NewsView({ darkMode }) {
               </div>
             </div>
           </div>
-          <button 
-            onClick={loadNews}
-            className={`w-10 h-10 rounded-xl ${darkMode ? 'bg-gray-700' : 'bg-blue-100'} flex items-center justify-center ${refreshing ? 'animate-spin' : ''}`}
+          <div className="flex items-center gap-2">
+            {activeTab === 'community' && (
+              <button
+                onClick={handleCreatePost}
+                className={`w-10 h-10 rounded-xl ${darkMode ? 'bg-gray-700' : 'bg-green-100'} flex items-center justify-center`}
+              >
+                <Plus className={`w-5 h-5 ${darkMode ? 'text-green-400' : 'text-green-600'}`} />
+              </button>
+            )}
+            <button 
+              onClick={activeTab === 'news' ? loadNews : loadCommunityPosts}
+              className={`w-10 h-10 rounded-xl ${darkMode ? 'bg-gray-700' : 'bg-blue-100'} flex items-center justify-center`}
+            >
+              <RefreshCw className={`w-5 h-5 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
+            </button>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex mt-4">
+          <button
+            onClick={() => setActiveTab('news')}
+            className={`flex-1 py-3 text-center font-medium border-b-2 ${
+              activeTab === 'news'
+                ? darkMode ? 'border-blue-500 text-blue-400' : 'border-blue-500 text-blue-600'
+                : darkMode ? 'border-gray-700 text-gray-400' : 'border-zinc-200 text-zinc-500'
+            }`}
           >
-            <RefreshCw className={`w-5 h-5 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
+            官方資訊
+          </button>
+          <button
+            onClick={() => setActiveTab('community')}
+            className={`flex-1 py-3 text-center font-medium border-b-2 ${
+              activeTab === 'community'
+                ? darkMode ? 'border-green-500 text-green-400' : 'border-green-500 text-green-600'
+                : darkMode ? 'border-gray-700 text-gray-400' : 'border-zinc-200 text-zinc-500'
+            }`}
+          >
+            即時新聞
           </button>
         </div>
-        <p className={`mt-3 text-sm ${darkMode ? 'text-gray-300' : 'text-zinc-600'}`}>
-          根據位置自動推送相關資訊
-        </p>
       </div>
 
       {/* Location Error */}
@@ -134,74 +168,60 @@ export default function NewsView({ darkMode }) {
         </div>
       )}
 
-      {/* News List */}
+      {/* Content */}
       <div className="flex-1 overflow-y-auto p-4">
-        {newsItems.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center">
-            <div className={`w-20 h-20 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-blue-100'} flex items-center justify-center mb-4`}>
-              <Newspaper className={`w-10 h-10 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
-            </div>
-            <h3 className={`text-lg font-semibold mb-2 ${darkMode ? 'text-white' : 'text-zinc-900'}`}>正在加載資訊...</h3>
+        {activeTab === 'news' ? (
+          <div className="space-y-4">
+            {newsItems.map((item) => (
+              <div key={item.id} className={`rounded-2xl ${darkMode ? 'bg-gray-800' : 'bg-white'} border ${darkMode ? 'border-gray-700' : 'border-zinc-100'} p-5`}>
+                <div className="flex items-start gap-4">
+                  <div className={`w-12 h-12 rounded-xl ${darkMode ? 'bg-blue-600' : 'bg-blue-500'} flex items-center justify-center text-white text-2xl`}>
+                    {item.icon}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className={`font-bold ${darkMode ? 'text-white' : 'text-zinc-900'} mb-2`}>
+                      {item.title}
+                    </h3>
+                    <p className={`${darkMode ? 'text-gray-300' : 'text-zinc-600'}`}>
+                      {item.message}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
           <div className="space-y-4">
-            {newsItems.map((item) => (
-              <div
-                key={item.id}
-                className={`rounded-2xl overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'} border ${darkMode ? 'border-gray-700' : 'border-zinc-100'}`}
-              >
-                <div className={`h-1 ${getPriorityColor(item.priority)}`} />
-                <div className="p-5">
-                  <div className="flex items-start gap-4">
-                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${getTypeColor(item.type)} flex items-center justify-center text-white`}>
-                      <div className="text-2xl">{item.icon}</div>
+            {communityPosts.map((post) => (
+              <div key={post.id} className={`rounded-2xl ${darkMode ? 'bg-gray-800' : 'bg-white'} border ${darkMode ? 'border-gray-700' : 'border-zinc-100'} p-5`}>
+                <div className="flex items-start gap-3 mb-3">
+                  <div className={`w-10 h-10 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-100'} flex items-center justify-center text-2xl`}>
+                    {post.userAvatar}
+                  </div>
+                  <div>
+                    <div className={`font-medium ${darkMode ? 'text-white' : 'text-zinc-900'}`}>
+                      {post.username}
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <h3 className={`font-bold ${darkMode ? 'text-white' : 'text-zinc-900'}`}>
-                          {item.title}
-                        </h3>
-                        {item.type === 'deal' && (
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${darkMode ? 'bg-pink-900 text-pink-300' : 'bg-pink-100 text-pink-700'} shrink-0`}>
-                            優惠
-                          </span>
-                        )}
-                      </div>
-                      <p className={`${darkMode ? 'text-gray-300' : 'text-zinc-600'} mb-3`}>
-                        {item.message}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className={`px-2 py-0.5 rounded text-xs ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-zinc-600'}`}>
-                            {item.type === 'local' ? '本地' : 
-                             item.type === 'weather' ? '天氣' :
-                             item.type === 'transport' ? '交通' :
-                             item.type === 'food' ? '飲食' :
-                             item.type === 'deal' ? '優惠' :
-                             item.type === 'event' ? '活動' : '資訊'}
-                          </span>
-                          {item.category && (
-                            <span className={`px-2 py-0.5 rounded text-xs ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-zinc-600'}`}>
-                              {item.category === 'food' ? '飲食' :
-                               item.category === 'shopping' ? '購物' :
-                               item.category === 'transport' ? '交通' :
-                               item.category === 'accommodation' ? '住宿' :
-                               item.category === 'travel' ? '旅遊' : item.category}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex flex-col items-end">
-                          <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-zinc-500'}`}>
-                            {new Date(item.timestamp).toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                          {item.expiry && (
-                            <span className={`text-xs ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>
-                              到期: {item.expiry.split('-')[2]}/{item.expiry.split('-')[1]}
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                    <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-zinc-500'} mt-1`}>
+                      {post.locationName} • {post.distance}km
                     </div>
+                  </div>
+                </div>
+                <p className={`${darkMode ? 'text-gray-300' : 'text-zinc-600'} mb-3`}>
+                  {post.content}
+                </p>
+                <div className="flex items-center gap-4 pt-3 border-t ${darkMode ? 'border-gray-700' : 'border-zinc-100'}`}>
+                  <div className={`flex items-center gap-1.5 ${darkMode ? 'text-gray-400' : 'text-zinc-500'}`}>
+                    <div className="text-lg">❤️</div>
+                    <span className="text-sm">{post.likes}</span>
+                  </div>
+                  <div className={`flex items-center gap-1.5 ${darkMode ? 'text-gray-400' : 'text-zinc-500'}`}>
+                    <div className="text-lg">💬</div>
+                    <span className="text-sm">{post.comments}</span>
+                  </div>
+                  <div className={`flex items-center gap-1.5 ${darkMode ? 'text-gray-400' : 'text-zinc-500'}`}>
+                    <div className="text-lg">↪️</div>
+                    <span className="text-sm">{post.shares}</span>
                   </div>
                 </div>
               </div>
@@ -213,7 +233,10 @@ export default function NewsView({ darkMode }) {
       {/* Footer */}
       <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} border-t ${darkMode ? 'border-gray-700' : 'border-zinc-100'} px-5 py-3`}>
         <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-zinc-500'}`}>
-          {newsItems.length} 則資訊 • {currentRegion}
+          {activeTab === 'news' 
+            ? `${newsItems.length} 則資訊 • ${currentRegion}`
+            : `${communityPosts.length} 則發佈 • ${currentRegion}`
+          }
         </div>
       </div>
     </div>

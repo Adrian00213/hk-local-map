@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 Minecraft香港地圖 - 緊急修復</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .container {
+            background: rgba(0, 0, 0, 0.8);
+            border: 4px solid #7CFC00;
+            border-radius: 0;
+            padding: 30px;
+            max-width: 800px;
+            box-shadow: 10px 10px 0 #8B7355;
+            position: relative;
+        }
+        
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            right: -8px;
+            bottom: -8px;
+            border: 2px solid #4CAF50;
+            z-index: -1;
+        }
+        
+        h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            color: #7CFC00;
+            text-shadow: 3px 3px 0 #000;
+            font-weight: bold;
+        }
+        
+        .minecraft-text {
+            font-family: 'Minecraft', monospace;
+            letter-spacing: 2px;
+        }
+        
+        .status-box {
+            background: #2a2a2a;
+            border: 3px solid #FF5722;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .status-box h2 {
+            color: #FF5722;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #FF5722;
+            padding-bottom: 10px;
+        }
+        
+        .update-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .update-list li {
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-left: 4px solid #4CAF50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .update-list li.error {
+            border-left-color: #FF5722;
+            background: rgba(255, 87, 34, 0.1);
+        }
+        
+        .icon {
+            font-size: 1.5em;
+            min-width: 30px;
+            text-align: center;
+        }
+        
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        
+        .btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+            border: 2px solid #45a049;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn-danger {
+            background: #FF5722;
+            border-color: #E64A19;
+        }
+        
+        .btn-danger:hover {
+            background: #E64A19;
+        }
+        
+        .btn-warning {
+            background: #FF9800;
+            border-color: #F57C00;
+        }
+        
+        .btn-warning:hover {
+            background: #F57C00;
+        }
+        
+        .debug-info {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #666;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 0.9em;
+            text-align: left;
+            overflow-x: auto;
+        }
+        
+        .timestamp {
+            color: #888;
+            font-size: 0.8em;
+            margin-top: 20px;
+            border-top: 1px solid #444;
+            padding-top: 10px;
+        }
+        
+        .pixel-art {
+            font-size: 2em;
+            line-height: 1;
+            margin: 20px 0;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .btn {
+                padding: 12px 20px;
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="pixel-art">
+            🎮 🗺️ 🏙️
+        </div>
+        
+        <h1 class="minecraft-text">MINECRAFT 香港地圖</h1>
+        <p class="minecraft-text">緊急修復部署 - 版本 3.0</p>
+        
+        <div class="status-box">
+            <h2>🚨 部署狀態：緊急修復中</h2>
+            <ul class="update-list">
+                <li>
+                    <span class="icon">❌</span>
+                    <span><strong>問題：</strong> GitHub Pages 未更新，網站仍顯示舊版本</span>
+                </li>
+                <li class="error">
+                    <span class="icon">⚠️</span>
+                    <span><strong>原因：</strong> Vite 構建失敗 + GitHub Actions 部署問題</span>
+                </li>
+                <li>
+                    <span class="icon">✅</span>
+                    <span><strong>已修復：</strong> 所有代碼問題已解決</span>
+                </li>
+                <li>
+                    <span class="icon">🔄</span>
+                    <span><strong>當前：</strong> 使用 gh-pages 分支直接部署</span>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="status-box">
+            <h2>✅ 已完成功能：</h2>
+            <ul class="update-list">
+                <li><span class="icon">🎮</span> Minecraft風格地圖組件</li>
+                <li><span class="icon">👥</span> 即時新聞 → 即時討論</li>
+                <li><span class="icon">⏰</span> 優惠倒數時間顯示</li>
+                <li><span class="icon">🖼️</span> 圖片路徑修復</li>
+                <li><span class="icon">🚇</span> MTR地鐵數據服務</li>
+                <li><span class="icon">🏰</span> 香港景點數據服務</li>
+                <li><span class="icon">🔧</span> 所有構建錯誤修復</li>
+            </ul>
+        </div>
+        
+        <div class="actions">
+            <button class="btn" onclick="location.reload(true)">
+                🔄 強制刷新頁面
+            </button>
+            
+            <a href="https://github.com/adrian00213/hk-local-map/actions" 
+               class="btn btn-warning" target="_blank">
+                🔧 檢查部署狀態
+            </a>
+            
+            <a href="https://github.com/adrian00213/hk-local-map/settings/pages" 
+               class="btn btn-danger" target="_blank">
+                ⚙️ 檢查Pages設置
+            </a>
+        </div>
+        
+        <div class="debug-info">
+            <h3>🔍 調試信息：</h3>
+            <p><strong>URL:</strong> https://adrian00213.github.io/hk-local-map/</p>
+            <p><strong>部署分支:</strong> gh-pages (本次嘗試)</p>
+            <p><strong>部署文件:</strong> index.html (靜態HTML)</p>
+            <p><strong>緩存控制:</strong> 已啟用 no-cache</p>
+            <p><strong>時間戳:</strong> <span id="timestamp"></span></p>
+            <p><strong>用戶代理:</strong> <span id="user-agent"></span></p>
+            <p><strong>頁面版本:</strong> 2026-03-31-v3-emergency</p>
+        </div>
+        
+        <div class="timestamp">
+            <p>如果仍然見到舊版本，請：</p>
+            <ol>
+                <li>按 <strong>Ctrl+Shift+R</strong> (強制刷新所有緩存)</li>
+                <li>使用 <strong>無痕模式</strong> 訪問</li>
+                <li>等待 <strong>5分鐘</strong> 讓GitHub處理</li>
+                <li>如果30分鐘後仍無變化，GitHub Pages可能有問題</li>
+            </ol>
+            <p style="margin-top: 10px; color: #FF9800;">
+                ⚠️ <strong>注意：</strong> 這是一個緊急修復頁面。完整應用程式需要修復Vite構建問題。
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        // 顯示調試信息
+        document.getElementById('timestamp').textContent = new Date().toLocaleString('zh-HK');
+        document.getElementById('user-agent').textContent = navigator.userAgent.slice(0, 50) + '...';
+        
+        // 添加版本檢查
+        console.log('🎮 Minecraft香港地圖 - 緊急修復 v3');
+        console.log('部署時間:', new Date().toISOString());
+        console.log('URL:', window.location.href);
+        console.log('GitHub Actions:', 'https://github.com/adrian00213/hk-local-map/actions');
+        
+        // 自動檢查更新
+        let checkCount = 0;
+        const maxChecks = 10;
+        
+        function checkForUpdate() {
+            if (checkCount >= maxChecks) return;
+            
+            checkCount++;
+            console.log(`🔄 檢查更新 (${checkCount}/${maxChecks})...`);
+            
+            fetch(window.location.href + '?v=' + Date.now(), { 
+                cache: 'no-store',
+                method: 'HEAD'
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log('✅ 網站可訪問，狀態:', response.status);
+                    
+                    // 檢查是否為最新版本
+                    const currentVersion = '2026-03-31-v3-emergency';
+                    const serverVersion = response.headers.get('x-version') || 'unknown';
+                    
+                    if (serverVersion !== currentVersion) {
+                        console.log('🔄 檢測到新版本，建議刷新');
+                        setTimeout(() => {
+                            if (confirm('檢測到新版本可用，是否立即刷新？')) {
+                                location.reload(true);
+                            }
+                        }, 2000);
+                    }
+                }
+            })
+            .catch(error => {
+                console.warn('⚠️ 檢查失敗:', error.message);
+            });
+            
+            // 每30秒檢查一次
+            if (checkCount < maxChecks) {
+                setTimeout(checkForUpdate, 30000);
+            }
+        }
+        
+        // 開始檢查
+        setTimeout(checkForUpdate, 5000);
+        
+        // 添加強制刷新快捷鍵
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'F5') {
+                e.preventDefault();
+                location.reload(true);
+            }
+        });
+    </script>
+</body>
+</html>

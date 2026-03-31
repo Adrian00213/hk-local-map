@@ -9,7 +9,6 @@ import ProfileView from './components/ProfileView'
 import OnboardingView from './components/OnboardingView'
 import Header from './components/Header'
 import TrafficView from './components/TrafficView'
-import QueueTimesView from './components/QueueTimesView'
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('map')
@@ -46,7 +45,6 @@ export default function App() {
       case 'map': return <MapView darkMode={darkMode} />
       case 'news': return <NewsView darkMode={darkMode} />
       case 'traffic': return <TrafficView darkMode={darkMode} />
-      case 'queue': return <QueueTimesView darkMode={darkMode} />
       case 'profile': return <ProfileView darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
       default: return <MapView darkMode={darkMode} />
     }

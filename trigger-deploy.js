@@ -1,4 +1,12 @@
-<!DOCTYPE html>
+// 嘗試通過創建新提交觸發部署
+const { execSync } = require('child_process')
+const fs = require('fs')
+const path = require('path')
+
+console.log('🚀 嘗試強制觸發GitHub Pages部署...')
+
+// 創建強制更新文件
+const forceContent = `<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
@@ -79,8 +87,8 @@
         </div>
         
         <div class="timestamp">
-            部署時間: 31/3/2026 下午2:10:50<br>
-            版本: AUTO-FIX-1774937450285<br>
+            部署時間: ${new Date().toLocaleString('zh-HK')}<br>
+            版本: AUTO-FIX-${Date.now()}<br>
             如果仍然見到舊版本，請按 Ctrl+Shift+R 強制刷新
         </div>
     </div>
@@ -98,4 +106,24 @@
         }, 5000);
     </script>
 </body>
-</html>
+</html>`
+
+// 寫入文件
+fs.writeFileSync(path.join(__dirname, 'index.html'), forceContent)
+fs.writeFileSync(path.join(__dirname, '.nojekyll'), '')
+fs.writeFileSync(path.join(__dirname, 'CNAME'), 'adrian00213.github.io')
+
+console.log('✅ 創建強制更新文件完成')
+
+// 嘗試提交
+try {
+    execSync('git add .', { stdio: 'inherit' })
+    execSync(`git commit -m "自動修復: 強制更新GitHub Pages - ${new Date().toISOString()}"`, { stdio: 'inherit' })
+    execSync('git push origin force-deploy --force', { stdio: 'inherit' })
+    console.log('🚀 已提交強制更新！')
+    console.log('請等待2-3分鐘讓GitHub Pages更新...')
+    console.log('然後訪問: https://adrian00213.github.io/hk-local-map/')
+} catch (error) {
+    console.error('❌ 提交失敗:', error.message)
+    console.log('請手動觸發GitHub Actions工作流')
+}

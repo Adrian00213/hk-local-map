@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Newspaper, RefreshCw, MessageCircle, Plus, Globe, AlertCircle, Clock, Timer } from 'lucide-react'
+import { Newspaper, RefreshCw, MessageCircle, Plus, Globe, AlertCircle, Clock, Users, TrendingUp, TrendingDown, Star, Filter, Search, MapPin, Heart } from 'lucide-react'
 import { useMap } from '../context/MapContext'
 import newsService from '../services/NewsService'
 import communityService from '../services/CommunityService'
@@ -10,8 +10,10 @@ export default function NewsView({ darkMode }) {
   const [newsItems, setNewsItems] = useState([])
   const [communityPosts, setCommunityPosts] = useState([])
   const [queueAttractions, setQueueAttractions] = useState([])
-  const [activeTab, setActiveTab] = useState('news')
+  const [activeTab, setActiveTab] = useState('news') // 'news' | 'community' | 'queue'
   const [currentRegion, setCurrentRegion] = useState('未知地區')
+  const [queueSearch, setQueueSearch] = useState('')
+  const [queueFilter, setQueueFilter] = useState('all') // 'all' | 'nearby' | 'popular' | 'favorites'
 
   useEffect(() => {
     if (activeTab === 'news') {
@@ -21,7 +23,7 @@ export default function NewsView({ darkMode }) {
     } else if (activeTab === 'queue') {
       loadQueueAttractions()
     }
-  }, [userLocation, activeTab])
+  }, [userLocation, activeTab, queueFilter, queueSearch])
 
   const loadNews = () => {
     try {
@@ -65,11 +67,36 @@ export default function NewsView({ darkMode }) {
     }
   }
 
+  // 加載排隊資訊
   const loadQueueAttractions = () => {
     try {
-      const attractions = queueService.queueData.slice(0, 10)
+      let attractions = []
+      
+      if (queueFilter === 'nearby' && userLocation && !locationError) {
+        attractions = queueService.getNearbyAttractions(userLocation.lat, userLocation.lng, 20, 15)
+        const regionInfo = newsService.getRegionInfo(userLocation.lat, userLocation.lng)
+        setCurrentRegion(regionInfo.name)
+      } else if (queueFilter === 'popular') {
+        attractions = queueService.getPopularAttractions(15)
+        setCurrentRegion('熱門')
+      } else if (queueFilter === 'favorites') {
+        attractions = queueService.getFavoriteAttractions()
+        setCurrentRegion('收藏')
+      } else {
+        attractions = queueService.queueData.slice(0, 15)
+        setCurrentRegion('全部')
+      }
+      
+      // 搜索過濾
+      if (queueSearch.trim()) {
+        attractions = attractions.filter(attraction =>
+          attraction.name.toLowerCase().includes(queueSearch.toLowerCase()) ||
+          attraction.location.toLowerCase().includes(queueSearch.toLowerCase()) ||
+          attraction.category.toLowerCase().includes(queueSearch.toLowerCase())
+        )
+      }
+      
       setQueueAttractions(attractions)
-      setCurrentRegion('熱門景點')
     } catch (error) {
       console.error('❌ 加載排隊資訊失敗:', error)
       setQueueAttractions([])
@@ -100,6 +127,7 @@ export default function NewsView({ darkMode }) {
 
   return (
     <div className={`h-full w-full flex flex-col ${darkMode ? 'bg-gray-900' : 'bg-zinc-50'}`}>
+      {/* Header */}
       <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} px-5 pt-5 pb-4 border-b ${darkMode ? 'border-gray-700' : 'border-zinc-100'}`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -108,8 +136,7 @@ export default function NewsView({ darkMode }) {
             </div>
             <div>
               <h1 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-zinc-900'}`}>
-                {activeTab === 'news' ? '智能資訊' : 
-                 activeTab === 'community' ? '即時討論' : '排隊資訊'}
+                {activeTab === 'news' ? '智能資訊' : '即時新聞'}
               </h1>
               <div className="flex items-center gap-2 mt-1">
                 <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${darkMode ? 'bg-gray-700 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
@@ -129,11 +156,7 @@ export default function NewsView({ darkMode }) {
               </button>
             )}
             <button 
-              onClick={() => {
-                if (activeTab === 'news') loadNews()
-                else if (activeTab === 'community') loadCommunityPosts()
-                else loadQueueAttractions()
-              }}
+              onClick={activeTab === 'news' ? loadNews : loadCommunityPosts}
               className={`w-10 h-10 rounded-xl ${darkMode ? 'bg-gray-700' : 'bg-blue-100'} flex items-center justify-center`}
             >
               <RefreshCw className={`w-5 h-5 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
@@ -141,6 +164,7 @@ export default function NewsView({ darkMode }) {
           </div>
         </div>
 
+        {/* Tabs */}
         <div className="flex mt-4">
           <button
             onClick={() => setActiveTab('news')}
@@ -160,21 +184,12 @@ export default function NewsView({ darkMode }) {
                 : darkMode ? 'border-gray-700 text-gray-400' : 'border-zinc-200 text-zinc-500'
             }`}
           >
-            即時討論
-          </button>
-          <button
-            onClick={() => setActiveTab('queue')}
-            className={`flex-1 py-3 text-center font-medium border-b-2 ${
-              activeTab === 'queue'
-                ? darkMode ? 'border-purple-500 text-purple-400' : 'border-purple-500 text-purple-600'
-                : darkMode ? 'border-gray-700 text-gray-400' : 'border-zinc-200 text-zinc-500'
-            }`}
-          >
-            排隊資訊
+            即時新聞
           </button>
         </div>
       </div>
 
+      {/* Location Error */}
       {locationError && (
         <div className={`mx-4 mt-4 p-4 rounded-xl ${darkMode ? 'bg-red-900/30' : 'bg-red-50'} border ${darkMode ? 'border-red-800' : 'border-red-200'}`}>
           <div className="flex items-center gap-3">
@@ -195,6 +210,7 @@ export default function NewsView({ darkMode }) {
         </div>
       )}
 
+      {/* Content */}
       <div className="flex-1 overflow-y-auto p-4">
         {activeTab === 'news' ? (
           <div className="space-y-4">
@@ -205,31 +221,18 @@ export default function NewsView({ darkMode }) {
                     {item.icon}
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className={`font-bold ${darkMode ? 'text-white' : 'text-zinc-900'}`}>
-                        {item.title}
-                      </h3>
-                      {item.type === 'deal' && item.timeLeft && (
-                        <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs ${darkMode ? 'bg-red-900/30 text-red-300' : 'bg-red-100 text-red-700'}`}>
-                          <Timer className="w-3 h-3" />
-                          <span>{item.timeLeft}</span>
-                        </div>
-                      )}
-                    </div>
+                    <h3 className={`font-bold ${darkMode ? 'text-white' : 'text-zinc-900'} mb-2`}>
+                      {item.title}
+                    </h3>
                     <p className={`${darkMode ? 'text-gray-300' : 'text-zinc-600'}`}>
                       {item.message}
                     </p>
-                    {item.type === 'deal' && item.expiry && (
-                      <div className={`mt-2 text-xs ${darkMode ? 'text-gray-400' : 'text-zinc-500'}`}>
-                        到期日: {item.expiry}
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
             ))}
           </div>
-        ) : activeTab === 'community' ? (
+        ) : (
           <div className="space-y-4">
             {communityPosts.map((post) => (
               <div key={post.id} className={`rounded-2xl ${darkMode ? 'bg-gray-800' : 'bg-white'} border ${darkMode ? 'border-gray-700' : 'border-zinc-100'} p-5`}>
@@ -266,45 +269,15 @@ export default function NewsView({ darkMode }) {
               </div>
             ))}
           </div>
-        ) : (
-          <div className="space-y-4">
-            {queueAttractions.map((attraction) => (
-              <div key={attraction.id} className={`rounded-2xl ${darkMode ? 'bg-gray-800' : 'bg-white'} border ${darkMode ? 'border-gray-700' : 'border-zinc-100'} p-5`}>
-                <div className="flex items-start gap-3 mb-3">
-                  <div className="text-3xl">{attraction.icon}</div>
-                  <div className="flex-1">
-                    <h3 className={`font-bold ${darkMode ? 'text-white' : 'text-zinc-900'}`}>
-                      {attraction.name}
-                    </h3>
-                    <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-zinc-500'} mt-1`}>
-                      {attraction.location}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <Clock className={`w-4 h-4 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
-                    <span className={`font-medium ${darkMode ? 'text-white' : 'text-zinc-900'}`}>
-                      {attraction.currentWaitTime}分鐘
-                    </span>
-                  </div>
-                  <div className={`px-2 py-1 rounded text-xs ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
-                    {attraction.category}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
         )}
       </div>
 
+      {/* Footer */}
       <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} border-t ${darkMode ? 'border-gray-700' : 'border-zinc-100'} px-5 py-3`}>
         <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-zinc-500'}`}>
           {activeTab === 'news' 
             ? `${newsItems.length} 則資訊 • ${currentRegion}`
-            : activeTab === 'community'
-            ? `${communityPosts.length} 則發佈 • ${currentRegion}`
-            : `${queueAttractions.length} 個景點 • ${currentRegion}`
+            : `${communityPosts.length} 則發佈 • ${currentRegion}`
           }
         </div>
       </div>

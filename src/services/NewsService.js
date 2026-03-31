@@ -359,13 +359,33 @@ class NewsService {
     return baseNews
   }
 
-  // 獲取區域特定優惠
+  // 獲取區域特定優惠（包含倒數時間）
   getRegionSpecificDeals(regionInfo) {
     const now = new Date()
     const hour = now.getHours()
     const day = now.getDay()
     
     const baseDeals = []
+    
+    // 計算倒數時間
+    const calculateTimeLeft = (expiryDate) => {
+      const expiry = new Date(expiryDate)
+      const diffMs = expiry - now
+      
+      if (diffMs <= 0) return '已過期'
+      
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+      const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+      
+      if (diffDays > 0) {
+        return `剩餘 ${diffDays} 天 ${diffHours} 小時`
+      } else if (diffHours > 0) {
+        return `剩餘 ${diffHours} 小時`
+      } else {
+        const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+        return `剩餘 ${diffMinutes} 分鐘`
+      }
+    }
     
     switch (regionInfo.region) {
       case 'hong_kong':
@@ -379,6 +399,7 @@ class NewsService {
             icon: '🍜',
             category: 'food',
             expiry: '2026-04-15',
+            timeLeft: calculateTimeLeft('2026-04-15'),
             timestamp: now.toISOString()
           },
           {

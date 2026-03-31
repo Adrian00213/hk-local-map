@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api'
 import { useMap, CATEGORY_ICONS, CATEGORY_LABELS } from '../context/MapContext'
+import { useAutomation } from '../context/AutomationContext'
 import MarkerForm from './MarkerForm'
 import SmartRecommendationEngine from './SmartRecommendationEngine'
 import RegionSelector from './RegionSelector'
@@ -13,6 +14,7 @@ const containerStyle = { width: '100%', height: '100%' }
 
 export default function MapView({ darkMode }) {
   const { markers, userLocation, locationError, selectedCategory, setSelectedCategory, refreshUserLocation } = useMap()
+  const { recordLocation, recordFunctionUsage } = useAutomation()
   const [showForm, setShowForm] = useState(false)
   const [selected, setSelected] = useState(null)
   const [showNearby, setShowNearby] = useState(false)
@@ -26,6 +28,9 @@ export default function MapView({ darkMode }) {
   useEffect(() => {
     const saved = localStorage.getItem('hk_selected_region')
     if (saved) setCurrentRegion(saved)
+    
+    // 記錄地圖功能使用
+    recordFunctionUsage('map', 1)
   }, [])
 
 
@@ -294,7 +299,20 @@ export default function MapView({ darkMode }) {
                 scaledSize: { width: 44, height: 44 },
                 anchor: { x: 22, y: 22 }
               }}
-              onClick={() => setSelected(m.place || m)}
+              onClick={() => {
+                setSelected(m.place || m)
+                // 記錄位置點擊
+                if (m.name || m.title) {
+                  recordLocation({
+                    id: m.id || `location_${Date.now()}`,
+                    name: m.name || m.title,
+                    category: m.category,
+                    lat: lat,
+                    lng: lng,
+                    timestamp: new Date().toISOString()
+                  })
+                }
+              }}
             />
           )
         })}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { MapProvider } from './context/MapContext'
 import { AuthProvider } from './context/AuthContext'
+import { AutomationProvider } from './context/AutomationContext'
 import TabBar from './components/TabBar'
 import MapView from './components/MapView'
 import NewsView from './components/NewsView'
@@ -9,7 +10,6 @@ import OnboardingView from './components/OnboardingView'
 import Header from './components/Header'
 import TrafficView from './components/TrafficView'
 import QueueTimesView from './components/QueueTimesView'
-import AutomationView from './components/AutomationView'
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('map')
@@ -47,7 +47,6 @@ export default function App() {
       case 'news': return <NewsView darkMode={darkMode} />
       case 'traffic': return <TrafficView darkMode={darkMode} />
       case 'queue': return <QueueTimesView darkMode={darkMode} />
-      case 'automation': return <AutomationView darkMode={darkMode} />
       case 'profile': return <ProfileView darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
       default: return <MapView darkMode={darkMode} />
     }
@@ -65,16 +64,18 @@ export default function App() {
   return (
     <AuthProvider>
       <MapProvider>
-        <div 
-          className={`h-screen w-full flex flex-col ${darkMode ? 'dark bg-gray-900' : 'bg-white'}`} 
-          style={{ height: '100dvh' }}
-        >
-          <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
-          <main className="flex-1 min-h-0 overflow-y-auto">
-            {renderView()}
-          </main>
-          <TabBar activeTab={activeTab} onTabChange={setActiveTab} darkMode={darkMode} />
-        </div>
+        <AutomationProvider>
+          <div 
+            className={`h-screen w-full flex flex-col ${darkMode ? 'dark bg-gray-900' : 'bg-white'}`} 
+            style={{ height: '100dvh' }}
+          >
+            <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+            <main className="flex-1 min-h-0 overflow-y-auto">
+              {renderView()}
+            </main>
+            <TabBar activeTab={activeTab} onTabChange={setActiveTab} darkMode={darkMode} />
+          </div>
+        </AutomationProvider>
       </MapProvider>
     </AuthProvider>
   )
